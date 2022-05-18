@@ -5,6 +5,9 @@ from dash import html, dcc
 import pandas as pd
 import plotly.express as px
 
+# TODO: Setup as multi page app
+# https://dash.plotly.com/urls
+
 # Header
 header = html.H4("Review Analysis", className="bg-primary text-white p-4 mb-2")
 
@@ -66,6 +69,7 @@ box_rating_card = dbc.Card(
     ]
 )
 
+# Main page layout
 app.layout = html.Div(
     [
         dbc.Row(header),
