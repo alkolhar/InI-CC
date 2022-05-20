@@ -1,15 +1,12 @@
-import pandas as pd
-from dash import html, dcc
-import dash_bootstrap_components as dbc
 import dash_bootstrap_templates as dbt
 
-from dashboard.layout.elements import *
+from dashboard.functions.elements import *
 
 dbt.load_figure_template(["bootstrap"])
 
 # Data preprocessing
 # TODO: Pfad für GCP anpassen
-df = pd.read_xml('C:/Repositories/InI-CC/data/kitchen_&_housewares/unlabeled.xml')
+df = pd.read_xml('E:/Repositories/InI-CC/data/kitchen_&_housewares/unlabeled.xml')
 # make dates great again
 df['date'] = pd.to_datetime(df['date'])
 # calculate review character length
@@ -24,11 +21,10 @@ hist_ratings = create_hist_plot(df, 'rating', 'Review counts by rating', 'Star r
                                 'Number of reviews', 'total descending')
 
 # create scatter over time
-scatter_card = create_scatter_plot(df, 'date', 'review_length', 'asin', 'product')
+scatter_card = create_scatter_plot(df, 'date', 'review_length', 'asin', 'product_name')
 
 # create boxplot rating by review length
 box_rating_card = create_boxplot(df, 'review_length', 'rating', 'rating', 'h')
-
 
 # Main page layout
 body = html.Div(
@@ -37,19 +33,19 @@ body = html.Div(
             [
                 dbc.Col(hist_review_count, width=5),
                 dbc.Col(hist_ratings, width=5)
-            ], justify="center"
+            ], justify="center", style={"margin-top": "30px"}
         ),
         dbc.Row(
             [
                 dbc.Col(scatter_card, width=10)
-            ], justify="center"
+            ], justify="center", style={"margin-top": "30px"}
         ),
         dbc.Row(
             [
                 dbc.Col(box_rating_card, width=10)
-            ], justify="center"
+            ], justify="center", style={"margin-top": "30px"}
         )
-    ]
+    ], className="mt-12 container", style={"margin-top": "30px"}
 )
 
 layout = html.Div([navbar, body])
