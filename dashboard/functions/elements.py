@@ -5,8 +5,9 @@ import plotly.express as px
 
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Analyze Strings", href="/analyze-str"), style={"margin-left": "5px"}),
-        dbc.NavItem(dbc.NavLink("Explore Dataset", href="/explore"), style={"margin-left": "5px"})
+        dbc.NavItem(dbc.NavLink("Analyze Files", href="/analyze-file"), style={"marginLeft": "5px"}),
+        dbc.NavItem(dbc.NavLink("Analyze Strings", href="/analyze-str"), style={"marginLeft": "5px"}),
+        dbc.NavItem(dbc.NavLink("Explore Dataset", href="/explore"), style={"marginLeft": "5px"})
     ],
     brand="Review Sentiment Analysis",
     brand_href="/",
@@ -26,12 +27,6 @@ def create_hist_plot(df: pd.DataFrame, x_value: str, plot_title: str, x_title: s
             ),
             dbc.CardBody(
                 [
-                    dbc.Row(dbc.DropdownMenu(
-                        label="Choose a category",
-                        children=[
-                            dbc.DropdownMenuItem("1")
-                        ]),
-                        class_name="col-md-6"),
                     dcc.Graph(id='hist', figure=hist)
                 ]
             )
