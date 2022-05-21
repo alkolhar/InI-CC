@@ -26,26 +26,55 @@ scatter_card = create_scatter_plot(df, 'date', 'review_length', 'asin', 'product
 # create boxplot rating by review length
 box_rating_card = create_boxplot(df, 'review_length', 'rating', 'rating', 'h')
 
+# Overview
+jumbotron = html.Div(
+    dbc.Container(
+        [
+            html.H1("Explore Datasets", className="display-3"),
+            html.P(
+                "Choose a product category from the dropdown menu below "
+                "and take a look at some review statistics.",
+                className="lead",
+            ),
+            html.Hr(className="my-2"),
+            html.P(
+                dbc.Row(dbc.DropdownMenu(
+                    label="Choose a category",
+                    children=[
+                        dbc.DropdownMenuItem("1"),
+                        dbc.DropdownMenuItem("2"),
+                        dbc.DropdownMenuItem("3")
+                    ]),
+                    class_name="col-md-6"),
+            ),
+        ],
+        fluid=True,
+        className="py-3",
+    ),
+    className="p-3 bg-light rounded-3",
+)
+
 # Main page layout
 body = html.Div(
     [
+        dbc.Row(jumbotron, style={"marginTop": "6px"}),
         dbc.Row(
             [
-                dbc.Col(hist_review_count, width=5),
-                dbc.Col(hist_ratings, width=5)
-            ], justify="center", style={"margin-top": "30px"}
+                dbc.Col(hist_review_count, width=6),
+                dbc.Col(hist_ratings, width=6)
+            ], justify="center", style={"marginTop": "30px"}
         ),
         dbc.Row(
             [
-                dbc.Col(scatter_card, width=10)
-            ], justify="center", style={"margin-top": "30px"}
+                dbc.Col(scatter_card, width=12)
+            ], justify="center", style={"marginTop": "30px"}
         ),
         dbc.Row(
             [
-                dbc.Col(box_rating_card, width=10)
-            ], justify="center", style={"margin-top": "30px"}
+                dbc.Col(box_rating_card, width=12)
+            ], justify="center", style={"marginTop": "30px"}
         )
-    ], className="mt-12 container", style={"margin-top": "30px"}
+    ], className="mt-12 container"
 )
 
 layout = html.Div([navbar, body])
