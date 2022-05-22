@@ -33,17 +33,14 @@ jumbotron = html.Div(
                 className="lead",
             ),
             html.Hr(className="my-2"),
-
+            # TODO: reload settings.opt dataframe
             dbc.Row(
                 [
                     dbc.Col(
                         dbc.Select(
                             id="select",
                             options=[
-                                {"label": "Books", "value": "1", "disabled": True},
-                                {"label": "DVDs", "value": "2", "disabled": True},
-                                {"label": "Electronics", "value": "3", "disabled": True},
-                                {"label": "Kitchen & Housewares", "value": "4", "disabled": False}
+                                {'label': i, 'value': i} for i in settings.opt['options'].unique()
                             ],
                         ), className="col-md-6"
                     ),

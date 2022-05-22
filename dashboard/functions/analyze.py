@@ -1,4 +1,5 @@
 from dashboard.functions import settings
+import pandas as pd
 import locale
 import random
 
@@ -33,6 +34,9 @@ def analyze_file_dummy(contents, filename, date):
     try:
         root = settings.root
         df = settings.df
+        append_df = pd.DataFrame([filename.split('.')[0]], columns=['options'])
+        settings.opt = pd.concat([settings.opt, append_df], ignore_index=True, sort=True)
+        print(settings.opt.head())
 
     except Exception as e:
         print(e)

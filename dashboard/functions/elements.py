@@ -24,7 +24,7 @@ navbar = dbc.NavbarSimple(
 def create_hist_plot(x_value: str, plot_title: str, x_title: str = '', y_title: str = '',
                      order: str = 'total descending') -> dbc.Card:
     df = settings.df
-    hist = px.histogram(df, x=x_value, template=def_template)
+    hist = px.histogram(df, x=x_value, template=def_template, color='rating', nbins=10)
     hist.update_xaxes(categoryorder=order, title=x_title).update_yaxes(title=y_title)
     return dbc.Card(
         [
