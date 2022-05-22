@@ -92,8 +92,8 @@ output_section = dbc.Card(
                             dbc.CardBody(
                                 html.H2("--", id="rev-cat", className='text-center')
                             )
-                        ]
-                    ), style={"marginTop": "6px"}
+                        ], color="primary", outline=True, style={"marginTop": "6px"}
+                    )
                 ),
                 dbc.Col(
                     dbc.Card(
@@ -104,7 +104,7 @@ output_section = dbc.Card(
                             dbc.CardBody(
                                 html.H2("--", id="rev-count", className='text-center')
                             )
-                        ]
+                        ], color="primary", outline=True
                     )
                 ),
                 dbc.Col(
@@ -116,7 +116,7 @@ output_section = dbc.Card(
                             dbc.CardBody(
                                 html.H2("--", id="word-count", className='text-center')
                             )
-                        ]
+                        ], color="primary", outline=True
                     )
                 )
             ]
@@ -133,7 +133,7 @@ body = html.Div(
             ], justify="center"
         ),
         dbc.Row(
-            html.P(id='out_analyse'), style={"marginTop": "30px"}, class_name="col-md-12"
+            html.Div(id='out_analyse'), style={"marginTop": "30px"}, class_name="col-md-12"
         )
     ], className="mt-12 container", style={"marginTop": "30px"}
 )

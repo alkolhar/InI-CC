@@ -15,7 +15,7 @@ card = dbc.Card(
         dbc.CardFooter(
             dbc.Button("Analyze", id="btn-analyze", color="primary")
         )
-    ]
+    ], color="primary", outline=True
 )
 
 
@@ -57,7 +57,7 @@ output = dbc.Card(
                                         dbc.CardBody(
                                             html.H2("17", id="mag", className='text-center')
                                         )
-                                    ]
+                                    ], color="primary", outline=True
                                 )
                             ),
                             dbc.Row(
@@ -69,7 +69,7 @@ output = dbc.Card(
                                         dbc.CardBody(
                                             html.H2("69", id="score", className='text-center')
                                         )
-                                    ]
+                                    ], color="primary", outline=True
                                 ), style={"marginTop": "6px"}
                             )
                         ]
@@ -77,7 +77,7 @@ output = dbc.Card(
                 ]
             )
         )
-    ]
+    ], color="primary", outline=True
 )
 
 body = html.Div(
