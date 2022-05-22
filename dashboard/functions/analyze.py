@@ -1,15 +1,12 @@
-import base64
-import io
+from dashboard.functions import settings
 import locale
 import random
-import pandas as pd
-import xml.etree.ElementTree as ET
 
 from dash import html, dash_table
 from google.cloud import language_v1
+from google.cloud import datastore
 
 locale.setlocale(locale.LC_ALL, 'de_CH')
-df = pd.DataFrame({})
 
 # Look like a good tutorial
 # https://opensource.com/article/19/7/python-google-natural-language-api
@@ -17,7 +14,7 @@ df = pd.DataFrame({})
 
 
 def parse_input():
-    root = ET.parse('E:/Repositories/InI-CC/data/kitchen_&_housewares/unlabeled.xml').getroot()
+    root = settings.root
     count = 0
 
     for child in root:
@@ -31,11 +28,11 @@ def parse_input():
 
 def analyze_file_dummy(contents, filename, date):
     root = None
-    global df
+    settings.path_to_xml = filename
 
     try:
-        root = ET.parse('E:/Repositories/InI-CC/data/kitchen_&_housewares/' + filename).getroot()
-        df = pd.read_xml('E:/Repositories/InI-CC/data/kitchen_&_housewares/' + filename)
+        root = settings.root
+        df = settings.df
 
     except Exception as e:
         print(e)
@@ -133,7 +130,7 @@ def analyze_string(text: str):
 
 
 def analyze_file():
-    global df
+    df = settings.df
     print('function called')
     if not df.empty:
         df.reset_index()  # make sure indexes pair with number of rows
@@ -142,7 +139,10 @@ def analyze_file():
         # for index, row in df.iterrows():
             # analyze_string('a')
 
-        # TODO: rethink this! Table way to big
+        # TODO: save file in datastore
+
+        # TODO: rethink this! Table is way to big
+        # TODO: return value has to be reusable on other page
         return dash_table.DataTable(
                 df.to_dict('records')
             )
@@ -151,7 +151,21 @@ def analyze_file():
         return "DataFrame is empty"
 
 
-
-
-
-
+# TODO: do this shit
+def upload_entity(bucket_name, contents, destination_blob_name):
+    # Create, populate and persist an entity with keyID=1234
+    client = datastore.Client()
+    # The Cloud Datastore key for the new entity
+    key = client.key('EntityKind', 1234)
+    # Prepares the new entity
+    entity = datastore.Entity(key=key)
+    entity.update({
+        'foo': u'bar',
+        'baz': 1337,
+        'qux': False,
+    })
+    # Saves the entity
+    client.put(entity)
+    # Then get by key for this entity
+    result = client.get(key)
+    print(result)

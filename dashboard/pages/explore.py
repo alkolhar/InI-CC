@@ -1,30 +1,26 @@
 import dash_bootstrap_templates as dbt
 
+from dashboard.functions import storage
 from dashboard.functions.elements import *
 
 dbt.load_figure_template(["bootstrap"])
 
-# Data preprocessing
-# TODO: Pfad für GCP anpassen
-df = pd.read_xml('E:/Repositories/InI-CC/data/kitchen_&_housewares/unlabeled.xml')
-# make dates great again
-df['date'] = pd.to_datetime(df['date'])
-# calculate review character length
-df['review_length'] = df['review_text'].str.len()
-
 # create count on number of reviews per product
-hist_review_count = create_hist_plot(df, 'asin', 'Review counts by product', 'Product Number',
+hist_review_count = create_hist_plot('asin', 'Review counts by product', 'Product Number',
                                      'Number of reviews', 'total descending')
 
 # create rating histogram
-hist_ratings = create_hist_plot(df, 'rating', 'Review counts by rating', 'Star rating',
+hist_ratings = create_hist_plot('rating', 'Review counts by rating', 'Star rating',
                                 'Number of reviews', 'total descending')
 
 # create scatter over time
-scatter_card = create_scatter_plot(df, 'date', 'review_length', 'asin', 'product_name')
+scatter_card = create_scatter_plot('date', 'review_length', 'asin', 'product_name')
 
 # create boxplot rating by review length
-box_rating_card = create_boxplot(df, 'review_length', 'rating', 'rating', 'h')
+box_rating_card = create_boxplot('review_length', 'rating', 'rating', 'h')
+
+# create word cloud
+word_cloud_card = create_wordcloud()
 
 # Overview
 jumbotron = html.Div(
@@ -37,15 +33,26 @@ jumbotron = html.Div(
                 className="lead",
             ),
             html.Hr(className="my-2"),
-            html.P(
-                dbc.Row(dbc.DropdownMenu(
-                    label="Choose a category",
-                    children=[
-                        dbc.DropdownMenuItem("1"),
-                        dbc.DropdownMenuItem("2"),
-                        dbc.DropdownMenuItem("3")
-                    ]),
-                    class_name="col-md-6"),
+
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Select(
+                            id="select",
+                            options=[
+                                {"label": "Books", "value": "1", "disabled": True},
+                                {"label": "DVDs", "value": "2", "disabled": True},
+                                {"label": "Electronics", "value": "3", "disabled": True},
+                                {"label": "Kitchen & Housewares", "value": "4", "disabled": False}
+                            ],
+                        ), className="col-md-6"
+                    ),
+                    dbc.Col(
+                        [
+                            storage.download
+                        ], className="d-grid gap-2 d-md-flex justify-content-md-end",
+                    )
+                ], class_name="col-md-12"
             ),
         ],
         fluid=True,
@@ -73,6 +80,11 @@ body = html.Div(
             [
                 dbc.Col(box_rating_card, width=12)
             ], justify="center", style={"marginTop": "30px"}
+        ),
+        dbc.Row(
+            [
+                dbc.Col(word_cloud_card, width=12)
+            ], justify='center', style={"marginTop": "30px", "maxHeight": "300px"}
         )
     ], className="mt-12 container"
 )
