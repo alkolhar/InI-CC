@@ -27,7 +27,7 @@ def parse_input():
         print(child.find('review_text').text)  # this gets the review text
 
 
-def analyze_file_dummy(contents, filename, date):
+def upload_review_file(contents, filename, date):
     root = None
     settings.path_to_xml = filename
 
@@ -144,6 +144,7 @@ def analyze_file():
             # analyze_string('a')
 
         # TODO: save file in datastore
+        upload_to_datastore(df)
 
         # TODO: rethink this! Table is way to big
         # TODO: return value has to be reusable on other page
@@ -155,21 +156,20 @@ def analyze_file():
         return "DataFrame is empty"
 
 
-# TODO: do this shit
-def upload_entity(bucket_name, contents, destination_blob_name):
-    # Create, populate and persist an entity with keyID=1234
+def upload_to_datastore(df):
+    # https://stackoverflow.com/questions/36314797/write-a-pandas-dataframe-to-google-cloud-storage-or-bigquery
     client = datastore.Client()
-    # The Cloud Datastore key for the new entity
-    key = client.key('EntityKind', 1234)
-    # Prepares the new entity
-    entity = datastore.Entity(key=key)
-    entity.update({
-        'foo': u'bar',
-        'baz': 1337,
-        'qux': False,
-    })
-    # Saves the entity
-    client.put(entity)
-    # Then get by key for this entity
-    result = client.get(key)
-    print(result)
+    for index, row in df.iterrows():
+        key = client.key('EntityKind')
+        entity = datastore.Entity(key=key)
+        entity.update({
+            'title': row['title'],
+            'review_text': row['review_text'],
+            'date': row['date'],
+            'asin': row['asin'],
+            'unique_id': row['unique_id']
+        })
+        client.put(entity)
+        # Then get by key for this entity
+        result = client.get(key)
+        print(result)
