@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
+import pandas as pd
 from dash import html, dcc, callback, Output, Input
-
-from dashboard.functions import settings
+from google.cloud import datastore
 
 download = html.Div(
     [
@@ -19,7 +19,8 @@ download = html.Div(
     prevent_initial_call=True,
 )
 def func(n_clicks):
-    df = settings.df
+    datastore_entities = datastore.Client().query(kind=category).fetch()
+    df = pd.DataFrame(datastore_entities)
     return dcc.send_data_frame(df.to_csv, "sentiment-analysis.csv")
 
 
@@ -29,5 +30,18 @@ def func(n_clicks):
     prevent_initial_call=True,
 )
 def func(n_clicks):
-    df = settings.df
+    datastore_entities = datastore.Client().query(kind=category).fetch()
+    df = pd.DataFrame(datastore_entities)
     return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name="Sheet_name_1")
+
+
+def get_categories():
+    datastore_entities = datastore.Client().query(kind='Category').fetch()
+    dff = pd.DataFrame(datastore_entities)
+    return dff
+
+
+def get_datastore_entities(category):
+    datastore_entities = datastore.Client().query(kind=category).fetch()
+    df = pd.DataFrame(datastore_entities)
+    return df

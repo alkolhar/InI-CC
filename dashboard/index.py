@@ -31,5 +31,7 @@ def display_page(pathname):
         return analyze_string.layout
     elif pathname == '/analyze-file':
         return analyze_files.layout
+    elif pathname == '/a':
+        print('not done yet')  # return explore_products.layout
     else:
         return explore.layout

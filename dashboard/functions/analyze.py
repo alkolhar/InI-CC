@@ -1,11 +1,16 @@
-from dashboard.functions import settings
+import base64
+import io
+import random
+
 import pandas as pd
 import locale
-import random
+import xml.etree.ElementTree as et
 
 from dash import html, dash_table
 from google.cloud import language_v1
 from google.cloud import datastore
+
+from dashboard.functions.storage import get_datastore_entities
 
 locale.setlocale(locale.LC_ALL, 'de_CH')
 
@@ -14,41 +19,43 @@ locale.setlocale(locale.LC_ALL, 'de_CH')
 # https://www.youtube.com/watch?v=Y2wgQjxrPD8
 
 
-def parse_input():
-    root = settings.root
-    count = 0
-
-    for child in root:
-        count += 1
-        print(child.find('unique_id').text)  # gets review id
-        print(child.find('asin').text)  # gets product id
-        print(child.find('product_name').text)
-        print(child.find('product_type').text)
-        print(child.find('review_text').text)  # this gets the review text
-
-
 def upload_review_file(contents, filename, date):
-    root = None
-    settings.path_to_xml = filename
 
     try:
-        root = settings.root
-        df = settings.df
-        append_df = pd.DataFrame([filename.split('.')[0]], columns=['options'])
-        settings.opt = pd.concat([settings.opt, append_df], ignore_index=True, sort=True)
-        print(settings.opt.head())
-
+        content_type, content_string = contents.split(',')
+        # content_string is in base64, so decode it
+        decoded = base64.b64decode(content_string)
+        # parse it
+        root = et.parse(io.BytesIO(decoded)).getroot()
+        review_count = len(list(root))
+        word_count = sum(len(child.find('review_text').text.split()) for child in root)
+        rand = random.randint(0, review_count - 1)
     except Exception as e:
         print(e)
         return (html.Div([
             'There was an error processing this file.'
-        ]), '--', '--', '--')
+        ]), '--', '--')
 
-    # choose random review
-    review_count = len(list(root))
-    word_count = sum(len(child.find('review_text').text.split()) for child in root)
-    rand = random.randint(0, review_count-1)
+    # loop over root and upload to google datastore
+    df = pd.DataFrame(columns=['unique_id', 'asin', 'product_name', 'rating',
+                               'title', 'date', 'reviewer', 'review_text'])
+    for child in root:
+        # TODO: get sentiment of review text
 
+        df = df.append({
+            'unique_id': child.find('unique_id').text,
+            'asin': child.find('asin').text,
+            'product_name': child.find('product_name').text,
+            'rating': child.find('rating').text,
+            'title': child.find('title').text,
+            'date': child.find('date').text,
+            'reviewer': child.find('reviewer').text,
+            'review_text': child.find('review_text').text,
+            # TODO: add results from sentiment analysis
+        }, ignore_index=True)
+    upload_to_datastore(df, 'filename'.split('.')[0])
+
+    # return example of a random review
     if root is not None:
         return (html.Div([
             html.H3("Example #" + str(rand)),
@@ -57,11 +64,10 @@ def upload_review_file(contents, filename, date):
             html.H4(root[rand].find('title').text, id='p-title'),
             html.P(root[rand].find('review_text').text, id='p-text'),
             html.Small(root[rand].find('unique_id').text, id='p-reviewid')]),
-                locale.format_string("%d", review_count, grouping=True),
-                locale.format_string("%d", word_count, grouping=True),
-                locale.format_string("%d", df['asin'].nunique(), grouping=True))
+            locale.format_string("%d", review_count, grouping=True),
+            locale.format_string("%d", word_count, grouping=True))
     else:
-        print('no root')
+        print('no dataframe')
 
 
 def analyze_string_dummy(text: str):
@@ -134,8 +140,6 @@ def analyze_string(text: str):
 
 
 def analyze_file():
-    df = settings.df
-    print('function called')
     if not df.empty:
         df.reset_index()  # make sure indexes pair with number of rows
 
@@ -156,20 +160,28 @@ def analyze_file():
         return "DataFrame is empty"
 
 
-def upload_to_datastore(df):
+def upload_to_datastore(df, category: str):
     # https://stackoverflow.com/questions/36314797/write-a-pandas-dataframe-to-google-cloud-storage-or-bigquery
     client = datastore.Client()
+
+    # TODO: check if category is already in datastore
+    df_cat = get_datastore_entities('category')
+    if category not in df_cat['category'].values:
+        client.key('category', category)
+        client.put(datastore.Entity(key=client.key('category', category)))
+
     for index, row in df.iterrows():
-        key = client.key('EntityKind')
+        key = client.key(category, row['unique_id'])
         entity = datastore.Entity(key=key)
         entity.update({
+            'product_id': row['asin'],
+            'product_name': row['product_name'],
+            'rating': row['rating'],
             'title': row['title'],
-            'review_text': row['review_text'],
             'date': row['date'],
-            'asin': row['asin'],
-            'unique_id': row['unique_id']
+            'reviewer': row['reviewer'],
+            'review_text': row['review_text'],
+            # TODO: add results from sentiment analysis
         })
         client.put(entity)
-        # Then get by key for this entity
-        result = client.get(key)
-        print(result)
+        print(f"Saved {entity.key.name}")

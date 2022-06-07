@@ -52,7 +52,6 @@ input_section = dbc.Card(
     Output("example_review", "children"),
     Output("rev-count", "children"),
     Output("word-count", "children"),
-    Output("rev-cat", "children"),
     Input("upload-file", "contents"),
     State("upload-file", "filename"),
     State("upload-file", "last_modified")
@@ -83,18 +82,6 @@ output_section = dbc.Card(
         ),
         dbc.CardBody(
             [
-                dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(
-                                html.H4("No. of Products", className='text-center')
-                            ),
-                            dbc.CardBody(
-                                html.H2("--", id="rev-cat", className='text-center')
-                            )
-                        ], color="primary", outline=True, style={"marginTop": "6px"}
-                    )
-                ),
                 dbc.Col(
                     dbc.Card(
                         [

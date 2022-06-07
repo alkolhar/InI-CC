@@ -1,5 +1,4 @@
 import base64
-from dashboard.functions import settings
 from io import BytesIO
 from dash import html, dcc
 import plotly.express as px
@@ -21,9 +20,8 @@ navbar = dbc.NavbarSimple(
 )
 
 
-def create_hist_plot(x_value: str, plot_title: str, x_title: str = '', y_title: str = '',
+def create_hist_plot(df, x_value: str, plot_title: str, x_title: str = '', y_title: str = '',
                      order: str = 'total descending') -> dbc.Card:
-    df = settings.df
     hist = px.histogram(df, x=x_value, template=def_template, color='rating', nbins=10)
     hist.update_xaxes(categoryorder=order, title=x_title).update_yaxes(title=y_title)
     return dbc.Card(
@@ -40,8 +38,7 @@ def create_hist_plot(x_value: str, plot_title: str, x_title: str = '', y_title: 
     )
 
 
-def create_scatter_plot(x_value: str, y_value: str, color: str, hover_name: str, log_x: bool = False):
-    df = settings.df
+def create_scatter_plot(df, x_value: str, y_value: str, color: str, hover_name: str, log_x: bool = False):
     fig = px.scatter(df, x=x_value, y=y_value, color=color, hover_name=hover_name, log_x=log_x, template=def_template)
     return dbc.Card(
         [
@@ -57,8 +54,7 @@ def create_scatter_plot(x_value: str, y_value: str, color: str, hover_name: str,
     )
 
 
-def create_boxplot(x_value: str, y_value: str, color: str, orientation: str):
-    df = settings.df
+def create_boxplot(df, x_value: str, y_value: str, color: str, orientation: str):
     box_rating = px.box(df, x=x_value, y=y_value, color=color, orientation=orientation, template=def_template)
     return dbc.Card(
         [
@@ -80,9 +76,9 @@ def plot_wordcloud(data):
     return wc.to_image()
 
 
-def create_wordcloud():
+def create_wordcloud(df):
     img = BytesIO()
-    plot_wordcloud(settings.df).save(img, format='PNG')
+    plot_wordcloud(df).save(img, format='PNG')
 
     return dbc.Card(
         [
