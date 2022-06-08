@@ -36,12 +36,15 @@ def func(n_clicks):
 
 
 def get_categories():
-    datastore_entities = datastore.Client().query(kind='Category').fetch()
+    datastore_entities = datastore.Client().query(kind='category').fetch()
     dff = pd.DataFrame(datastore_entities)
     return dff
 
 
 def get_datastore_entities(category):
+    print('category:', category)
     datastore_entities = datastore.Client().query(kind=category).fetch()
+    print(datastore_entities)
     df = pd.DataFrame(datastore_entities)
+    print(df)
     return df

@@ -10,9 +10,10 @@ from dash import html, dash_table
 from google.cloud import language_v1
 from google.cloud import datastore
 
-from dashboard.functions.storage import get_datastore_entities
+from dashboard.functions.storage import get_datastore_entities, get_categories
 
 locale.setlocale(locale.LC_ALL, 'de_CH')
+
 
 # Look like a good tutorial
 # https://opensource.com/article/19/7/python-google-natural-language-api
@@ -20,7 +21,6 @@ locale.setlocale(locale.LC_ALL, 'de_CH')
 
 
 def upload_review_file(contents, filename, date):
-
     try:
         content_type, content_string = contents.split(',')
         # content_string is in base64, so decode it
@@ -39,9 +39,8 @@ def upload_review_file(contents, filename, date):
     # loop over root and upload to google datastore
     df = pd.DataFrame(columns=['unique_id', 'asin', 'product_name', 'rating',
                                'title', 'date', 'reviewer', 'review_text'])
-    for child in root:
-        # TODO: get sentiment of review text
 
+    for child in root:
         df = df.append({
             'unique_id': child.find('unique_id').text,
             'asin': child.find('asin').text,
@@ -51,9 +50,11 @@ def upload_review_file(contents, filename, date):
             'date': child.find('date').text,
             'reviewer': child.find('reviewer').text,
             'review_text': child.find('review_text').text,
-            # TODO: add results from sentiment analysis
         }, ignore_index=True)
-    upload_to_datastore(df, 'filename'.split('.')[0])
+
+    # TODO: run sentiment analysis on review_text
+
+    upload_to_datastore(df, filename.split('.')[0])
 
     # return example of a random review
     if root is not None:
@@ -64,8 +65,8 @@ def upload_review_file(contents, filename, date):
             html.H4(root[rand].find('title').text, id='p-title'),
             html.P(root[rand].find('review_text').text, id='p-text'),
             html.Small(root[rand].find('unique_id').text, id='p-reviewid')]),
-            locale.format_string("%d", review_count, grouping=True),
-            locale.format_string("%d", word_count, grouping=True))
+                locale.format_string("%d", review_count, grouping=True),
+                locale.format_string("%d", word_count, grouping=True))
     else:
         print('no dataframe')
 
@@ -139,37 +140,28 @@ def analyze_string(text: str):
     print(u"Language of the text: {}".format(response.language))
 
 
-def analyze_file():
+def analyze_file(df: pd.DataFrame):
     if not df.empty:
         df.reset_index()  # make sure indexes pair with number of rows
 
         # TODO: actually analyse the texts
         # for index, row in df.iterrows():
-            # analyze_string('a')
-
-        # TODO: save file in datastore
-        upload_to_datastore(df)
-
-        # TODO: rethink this! Table is way to big
-        # TODO: return value has to be reusable on other page
-        return dash_table.DataTable(
-                df.to_dict('records')
-            )
+        # analyze_string('a')
 
     else:
         return "DataFrame is empty"
 
 
-def upload_to_datastore(df, category: str):
+def upload_to_datastore(df: pd.DataFrame, category: str):
     # https://stackoverflow.com/questions/36314797/write-a-pandas-dataframe-to-google-cloud-storage-or-bigquery
+    # Save category in datastore, for dropdown menu
     client = datastore.Client()
+    client.key('category', category)
+    ent = datastore.Entity(key=client.key('category', category))
+    ent.update({'done': True})
+    client.put(ent)
 
-    # TODO: check if category is already in datastore
-    df_cat = get_datastore_entities('category')
-    if category not in df_cat['category'].values:
-        client.key('category', category)
-        client.put(datastore.Entity(key=client.key('category', category)))
-
+    # upload dataframe to datastore
     for index, row in df.iterrows():
         key = client.key(category, row['unique_id'])
         entity = datastore.Entity(key=key)
@@ -184,4 +176,4 @@ def upload_to_datastore(df, category: str):
             # TODO: add results from sentiment analysis
         })
         client.put(entity)
-        print(f"Saved {entity.key.name}")
+

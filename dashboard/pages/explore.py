@@ -29,7 +29,7 @@ jumbotron = html.Div(
                             options=[
                                 {'label': i, 'value': i} for i in get_categories()  # .unique()
                             ],
-                            value='book',
+                            value='',
                         ), className="col-md-6"
                     ),
                     dbc.Col(
@@ -53,6 +53,11 @@ jumbotron = html.Div(
     [Input('select', 'value')]
 )
 def update_output(value):
+    print("value:", value)
+    if value == '':
+        return [
+            html.Div('Please select a category first.', className="text-center"),
+        ]
     df = get_datastore_entities(value)
 
     # create count on number of reviews per product
