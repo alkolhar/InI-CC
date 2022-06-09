@@ -1,16 +1,13 @@
 import base64
 import io
-import random
-
-import pandas as pd
 import locale
+import random
 import xml.etree.ElementTree as et
 
-from dash import html, dash_table
-from google.cloud import language_v1
+import pandas as pd
+from dash import html
 from google.cloud import datastore
-
-from dashboard.functions.storage import get_datastore_entities, get_categories
+from google.cloud import language_v1
 
 locale.setlocale(locale.LC_ALL, 'de_CH')
 
@@ -52,8 +49,9 @@ def upload_review_file(contents, filename, date):
             'review_text': child.find('review_text').text,
         }, ignore_index=True)
 
-    # TODO: run sentiment analysis on review_text
-
+    # Analyze file
+    analyze_file(df)
+    # Upload to datastore
     upload_to_datastore(df, filename.split('.')[0])
 
     # return example of a random review
@@ -71,109 +69,60 @@ def upload_review_file(contents, filename, date):
         print('no dataframe')
 
 
-def analyze_string_dummy(text: str):
+def analyze_string(text_content):
     """
-    Dummy method to simulate gcp nlp.
-    :param text:
-    :return:
+    Analyzing Sentiment in a String
+
+    Args:
+      text_content The text content to analyze
     """
-    print("Analyzing...")
-    print(text)
-    print("Analyzing complete, score: 6.9")
-
-
-def analyze_string(text: str):
-    """
-        Analyzing Entity Sentiment in a String
-
-        Args:
-          text The text content to analyze
-        """
-
+    # Create client for language api
     client = language_v1.LanguageServiceClient()
-
-    # text_content = 'Grapes are good. Bananas are bad.'
-
-    # Available types: PLAIN_TEXT, HTML
-    type_ = language_v1.types.Document.Type.PLAIN_TEXT
-
-    # Optional. If not specified, the language is automatically detected.
-    # For list of supported languages:
-    # https://cloud.google.com/natural-language/docs/languages
+    # Settings
+    type_ = language_v1.Document.Type.PLAIN_TEXT
     language = "en"
-    document = {"content": text, "type_": type_, "language": language}
-
-    # Available values: NONE, UTF8, UTF16, UTF32
+    document = {"content": text_content, "type_": type_, "language": language}
     encoding_type = language_v1.EncodingType.UTF8
-
-    response = client.analyze_entity_sentiment(request={'document': document, 'encoding_type': encoding_type})
-    # Loop through entitites returned from the API
-    for entity in response.entities:
-        print(u"Representative name for the entity: {}".format(entity.name))
-        # Get entity type, e.g. PERSON, LOCATION, ADDRESS, NUMBER, et al
-        print(u"Entity type: {}".format(language_v1.Entity.Type(entity.type_).name))
-        # Get the salience score associated with the entity in the [0, 1.0] range
-        print(u"Salience score: {}".format(entity.salience))
-        # Get the aggregate sentiment expressed for this entity in the provided document.
-        sentiment = entity.sentiment
-        print(u"Entity sentiment score: {}".format(sentiment.score))
-        print(u"Entity sentiment magnitude: {}".format(sentiment.magnitude))
-        # Loop over the metadata associated with entity. For many known entities,
-        # the metadata is a Wikipedia URL (wikipedia_url) and Knowledge Graph MID (mid).
-        # Some entity types may have additional metadata, e.g. ADDRESS entities
-        # may have metadata for the address street_name, postal_code, et al.
-        for metadata_name, metadata_value in entity.metadata.items():
-            print(u"{} = {}".format(metadata_name, metadata_value))
-
-        # Loop over the mentions of this entity in the input document.
-        # The API currently supports proper noun mentions.
-        for mention in entity.mentions:
-            print(u"Mention text: {}".format(mention.text.content))
-            # Get the mention type, e.g. PROPER for proper noun
-            print(
-                u"Mention type: {}".format(language_v1.EntityMention.Type(mention.type_).name)
-            )
-
-    # Get the language of the text, which will be the same as
-    # the language specified in the request or, if not specified,
-    # the automatically-detected language.
-    print(u"Language of the text: {}".format(response.language))
+    # Analyze sentiment
+    response = client.analyze_sentiment(request={'document': document, 'encoding_type': encoding_type})
+    # Return overall sentiment of the input document
+    return response.document_sentiment.score, response.document_sentiment.magnitude
 
 
 def analyze_file(df: pd.DataFrame):
     if not df.empty:
         df.reset_index()  # make sure indexes pair with number of rows
 
-        # TODO: actually analyse the texts
-        # for index, row in df.iterrows():
-        # analyze_string('a')
-
+        # Loop over dataframe and analyze sentiment
+        for index, row in df.iterrows():
+            result = analyze_string(row['review_text'])
+            df.at[index, 'sentiment_score'] = result[0]
+            df.at[index, 'sentiment_magnitude'] = result[1]
     else:
-        return "DataFrame is empty"
+        print('No data to analyze')
 
 
 def upload_to_datastore(df: pd.DataFrame, category: str):
     # https://stackoverflow.com/questions/36314797/write-a-pandas-dataframe-to-google-cloud-storage-or-bigquery
     # Save category in datastore, for dropdown menu
     client = datastore.Client()
-    client.key('category', category)
     ent = datastore.Entity(key=client.key('category', category))
     ent.update({'done': True})
     client.put(ent)
 
     # upload dataframe to datastore
     for index, row in df.iterrows():
-        key = client.key(category, row['unique_id'])
+        key = client.key(category, row['unique_id'].replace(' ', '_'))
         entity = datastore.Entity(key=key)
         entity.update({
             'product_id': row['asin'],
             'product_name': row['product_name'],
             'rating': row['rating'],
             'title': row['title'],
-            'date': row['date'],
+            'date': pd.to_datetime(row['date']),
             'reviewer': row['reviewer'],
             'review_text': row['review_text'],
-            # TODO: add results from sentiment analysis
+            'sentiment_score': row['sentiment_score'],
+            'sentiment_magnitude': row['sentiment_magnitude']
         })
         client.put(entity)
-

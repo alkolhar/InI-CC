@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html, callback, Output, Input, dcc, State
 
-from dashboard.functions.analyze import upload_review_file, analyze_file
+from dashboard.functions.analyze import upload_review_file
 from dashboard.functions.elements import navbar
 
 empty_string = "As soon as your file has reached our server, one of your uploaded reviews can be read here."
@@ -36,11 +36,6 @@ input_section = dbc.Card(
                         'textAlign': 'center',
                         'margin': '10px'
                     }
-                ),
-                html.Div(
-                    [
-                        dbc.Button("Analyse", id="btn-analyse", color="primary", className="me-1")
-                    ]
                 )
             ]
         )
@@ -61,18 +56,6 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return upload_review_file(list_of_contents, list_of_names, list_of_dates)  # TODO: return magnitude and score
     else:
         raise dash.exceptions.PreventUpdate
-
-
-@callback(
-    Output("out_analyse", "children"),
-    Input("btn-analyse", "n_clicks")
-)
-def list_analysis(n):
-    print(n)
-    if n is None:
-        return "No Analysis done yet!"
-    else:
-        return analyze_file()
 
 
 output_section = dbc.Card(

@@ -1,7 +1,7 @@
-from dash import html, callback, Output, Input
+from dash import html, callback, Output, Input, State
 import dash_bootstrap_components as dbc
 
-from dashboard.functions.analyze import analyze_string_dummy
+from dashboard.functions.analyze import analyze_string
 from dashboard.functions.elements import navbar
 
 card = dbc.Card(
@@ -23,14 +23,14 @@ card = dbc.Card(
     Output("mag", "children"),
     Output("score", "children"),
     Input("btn-analyze", "n_clicks"),
-    Input("txt_area", "value")
+    State("txt_area", "value")
 )
 def btn_click(n, value):
     if n is None:
         return "--", "--"
     else:
-        analyze_string_dummy(value)
-        return "Mag", "Score"  # TODO: return magnitude and score
+        score, mag = analyze_string(value)
+        return "{:.2f}".format(mag), "{:.2f}".format(score)
 
 
 output = dbc.Card(

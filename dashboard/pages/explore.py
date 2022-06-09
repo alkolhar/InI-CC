@@ -1,5 +1,4 @@
 import dash_bootstrap_templates as dbt
-import pandas as pd
 from dash import callback, Output, Input
 
 from dashboard.functions import storage
