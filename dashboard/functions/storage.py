@@ -16,9 +16,10 @@ download = html.Div(
 @callback(
     Output("download-dataframe-csv", "data"),
     Input("btn_csv", "n_clicks"),
+    Input("select-category", "value"),
     prevent_initial_call=True,
 )
-def func(n_clicks):
+def func(n_clicks, category):
     datastore_entities = datastore.Client().query(kind=category).fetch()
     df = pd.DataFrame(datastore_entities)
     return dcc.send_data_frame(df.to_csv, "sentiment-analysis.csv")
@@ -27,24 +28,20 @@ def func(n_clicks):
 @callback(
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"),
+    Input("select-category", "value"),
     prevent_initial_call=True,
 )
-def func(n_clicks):
+def func(n_clicks, category):
     datastore_entities = datastore.Client().query(kind=category).fetch()
     df = pd.DataFrame(datastore_entities)
-    return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name="Sheet_name_1")
+    return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name=category)
 
 
 def get_categories():
     datastore_entities = datastore.Client().query(kind='category').fetch()
-    dff = pd.DataFrame(datastore_entities)
-    return dff
+    return pd.DataFrame(datastore_entities)
 
 
 def get_datastore_entities(category):
-    print('category:', category)
     datastore_entities = datastore.Client().query(kind=category).fetch()
-    print(datastore_entities)
-    df = pd.DataFrame(datastore_entities)
-    print(df)
-    return df
+    return pd.DataFrame(datastore_entities)

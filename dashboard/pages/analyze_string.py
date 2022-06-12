@@ -1,5 +1,6 @@
 from dash import html, callback, Output, Input, State
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 
 from dashboard.functions.analyze import analyze_string
 from dashboard.functions.elements import navbar
@@ -20,17 +21,17 @@ card = dbc.Card(
 
 
 @callback(
-    Output("mag", "children"),
-    Output("score", "children"),
+    Output("mag", "value"),
+    Output("score", "value"),
     Input("btn-analyze", "n_clicks"),
     State("txt_area", "value")
 )
 def btn_click(n, value):
     if n is None:
-        return "--", "--"
+        return 0, 0
     else:
         score, mag = analyze_string(value)
-        return "{:.2f}".format(mag), "{:.2f}".format(score)
+        return mag, score
 
 
 output = dbc.Card(
@@ -42,11 +43,6 @@ output = dbc.Card(
             dbc.Row(
                 [
                     dbc.Col(
-                        dbc.CardImg(src="/static/images/portrait-placeholder.png",
-                                    className="img-fluid rounded-start",
-                                    )  # TODO: change image
-                    ),
-                    dbc.Col(
                         [
                             dbc.Row(
                                 dbc.Card(
@@ -55,7 +51,11 @@ output = dbc.Card(
                                             html.H3("Magnitude", className='text-center')
                                         ),
                                         dbc.CardBody(
-                                            html.H2("17", id="mag", className='text-center')
+                                            daq.Gauge(
+                                                id="mag",
+                                                value=2,
+                                                min=0,
+                                            ), class_name='align-self-center'
                                         )
                                     ], color="primary", outline=True
                                 )
@@ -67,7 +67,17 @@ output = dbc.Card(
                                             html.H3("Score", className='text-center')
                                         ),
                                         dbc.CardBody(
-                                            html.H2("69", id="score", className='text-center')
+                                            daq.Gauge(
+                                                id="score",
+                                                color={"gradient": True,
+                                                       "ranges": {"red": [-1, -0.7],
+                                                                  "yellow": [-0.7, 0.7],
+                                                                  "green": [0.7, 1]}
+                                                       },
+                                                value=0,
+                                                max=1,
+                                                min=-1,
+                                            ), class_name='align-self-center'
                                         )
                                     ], color="primary", outline=True
                                 ), style={"marginTop": "6px"}

@@ -107,13 +107,15 @@ def upload_to_datastore(df: pd.DataFrame, category: str):
     # Save category in datastore, for dropdown menu
     client = datastore.Client()
     ent = datastore.Entity(key=client.key('category', category))
-    ent.update({'done': True})
+    ent.update({category: True})
     client.put(ent)
 
     # upload dataframe to datastore
+    # https://cloud.google.com/datastore/docs/concepts/indexes#index_configuration
     for index, row in df.iterrows():
         key = client.key(category, row['unique_id'].replace(' ', '_'))
-        entity = datastore.Entity(key=key)
+        entity = datastore.Entity(key=key, exclude_from_indexes=['review_text'])
+
         entity.update({
             'product_id': row['asin'],
             'product_name': row['product_name'],
@@ -122,6 +124,7 @@ def upload_to_datastore(df: pd.DataFrame, category: str):
             'date': pd.to_datetime(row['date']),
             'reviewer': row['reviewer'],
             'review_text': row['review_text'],
+            'review_length': len(row['review_text'].split()),
             'sentiment_score': row['sentiment_score'],
             'sentiment_magnitude': row['sentiment_magnitude']
         })

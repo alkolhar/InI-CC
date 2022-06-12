@@ -3,6 +3,7 @@ from dash import callback, Output, Input
 
 from dashboard.functions import storage
 from dashboard.functions.elements import *
+from dashboard.functions.storage import get_categories, get_datastore_entities
 
 dbt.load_figure_template(["bootstrap"])
 
@@ -24,17 +25,16 @@ jumbotron = html.Div(
                         dbc.Select(
                             id="select-category",
                             options=[
-                                {'label': i, 'value': i} for i in settings.opt['options'].unique()
+                                {'label': i, 'value': i} for i in get_categories()
                             ],
-                            value='book',
+                            value='',
+                            placeholder="Select a category",
                         ), className="col-md-4"
                     ),
                     dbc.Col(
                         dbc.Select(
                             id="select-product",
-                            options=[
-                                {'label': i, 'value': i} for i in settings.opt['options'].unique()
-                            ],
+                            options=[],
                             value='',
                         ), className="col-md-4"
                     ),
@@ -68,8 +68,8 @@ def update_output(value):
 )
 def set_dropdown_content(search_value, cat_dd):
     if cat_dd is not None:
-        settings.df = settings.reload_df(cat_dd)
-        return [{"label": i, "value": i} for i in settings.df['asin'].unique()]
+        dff = get_datastore_entities(cat_dd)
+        return [{"label": i, "value": i} for i in dff['product_id'].unique()]
 
 
 # Header

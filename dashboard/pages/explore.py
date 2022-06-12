@@ -52,7 +52,6 @@ jumbotron = html.Div(
     [Input('select', 'value')]
 )
 def update_output(value):
-    print("value:", value)
     if value == '':
         return [
             html.Div('Please select a category first.', className="text-center"),
@@ -60,13 +59,13 @@ def update_output(value):
     df = get_datastore_entities(value)
 
     # create count on number of reviews per product
-    hist_review_count = create_hist_plot(df, 'asin', 'Review counts by product', 'Product Number',
+    hist_review_count = create_hist_plot(df, 'product_id', 'Review counts by product', 'Product Number',
                                          'Number of reviews', 'total descending')
     # create rating histogram
     hist_ratings = create_hist_plot(df, 'rating', 'Review counts by rating', 'Star rating',
                                     'Number of reviews', 'total descending')
     # create scatter over time
-    scatter_card = create_scatter_plot(df, 'date', 'review_length', 'asin', 'product_name')
+    scatter_card = create_scatter_plot(df, 'date', 'review_length', 'product_id', 'product_name')
     # create boxplot rating by review length
     box_rating_card = create_boxplot(df, 'review_length', 'rating', 'rating', 'h')
     # create word cloud
