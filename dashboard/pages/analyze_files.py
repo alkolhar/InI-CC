@@ -53,45 +53,47 @@ input_section = dbc.Card(
 )
 def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
-        return upload_review_file(list_of_contents, list_of_names, list_of_dates)  # TODO: return magnitude and score
+        return upload_review_file(list_of_contents, list_of_names, list_of_dates)
     else:
         raise dash.exceptions.PreventUpdate
 
 
-output_section = dbc.Card(
-    [
-        dbc.CardHeader(
-            html.H5("Uploaded files statistics")
-        ),
-        dbc.CardBody(
-            [
-                dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(
-                                html.H4("No. of Reviews", className='text-center')
-                            ),
-                            dbc.CardBody(
-                                html.H2("--", id="rev-count", className='text-center')
-                            )
-                        ], color="primary", outline=True
+output_section = dcc.Loading(
+    dbc.Card(
+        [
+            dbc.CardHeader(
+                html.H5("Uploaded files statistics")
+            ),
+            dbc.CardBody(
+                [
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.H4("No. of Reviews", className='text-center')
+                                ),
+                                dbc.CardBody(
+                                    html.H2("--", id="rev-count", className='text-center')
+                                )
+                            ], color="primary", outline=True
+                        )
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.H4("Word count", className='text-center')
+                                ),
+                                dbc.CardBody(
+                                    html.H2("--", id="word-count", className='text-center')
+                                )
+                            ], color="primary", outline=True
+                        )
                     )
-                ),
-                dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(
-                                html.H4("Word count", className='text-center')
-                            ),
-                            dbc.CardBody(
-                                html.H2("--", id="word-count", className='text-center')
-                            )
-                        ], color="primary", outline=True
-                    )
-                )
-            ]
-        )
-    ]
+                ]
+            )
+        ]
+    )
 )
 
 body = html.Div(
