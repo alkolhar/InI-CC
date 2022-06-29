@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_bootstrap_templates as dbt
 from dash import Dash, html, dcc, Output, callback, Input
 
-from dashboard.pages import explore, analyze_string, analyze_files
+from dashboard.pages import explore_cats, analyze_string, analyze_files, explore_products, explore_data
 
 dbt.load_figure_template(["bootstrap"])
 template_theme = "cyborg"
@@ -27,11 +27,13 @@ app.layout = html.Div(
 
 @callback(Output('page-content', 'children'), Input('url', 'pathname'))
 def display_page(pathname):
-    if pathname == '/analyze-str':
+    if pathname == '/analyzetext':
         return analyze_string.layout
-    elif pathname == '/analyze-file':
+    elif pathname == '/uploadfile':
         return analyze_files.layout
-    elif pathname == '/a':
-        print('not done yet')  # return explore_products.layout
+    elif pathname == '/products':
+        return explore_products.layout
+    elif pathname == '/uploadreview':
+        return explore_cats.layout
     else:
-        return explore.layout
+        return explore_cats.layout

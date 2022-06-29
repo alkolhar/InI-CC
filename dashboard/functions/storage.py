@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import html, dcc, callback, Output, Input
+from dash import html, dcc, callback, Output, Input, State
 from google.cloud import datastore
 
 download = html.Div(
@@ -16,25 +16,25 @@ download = html.Div(
 @callback(
     Output("download-dataframe-csv", "data"),
     Input("btn_csv", "n_clicks"),
-    Input("select-category", "value"),
+    State("select", "value"),
     prevent_initial_call=True,
 )
 def func(n_clicks, category):
-    datastore_entities = datastore.Client().query(kind=category).fetch()
-    df = pd.DataFrame(datastore_entities)
-    return dcc.send_data_frame(df.to_csv, "sentiment-analysis.csv")
+    if n_clicks is not None and category != '':
+        df = get_datastore_entities(category)
+        return dcc.send_data_frame(df.to_csv, "sentiment-analysis.csv")
 
 
 @callback(
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"),
-    Input("select-category", "value"),
+    State("select", "value"),
     prevent_initial_call=True,
 )
 def func(n_clicks, category):
-    datastore_entities = datastore.Client().query(kind=category).fetch()
-    df = pd.DataFrame(datastore_entities)
-    return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name=category)
+    if n_clicks is not None and category != '':
+        df = get_datastore_entities(category)
+        return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name=category)
 
 
 def get_categories():
@@ -45,3 +45,4 @@ def get_categories():
 def get_datastore_entities(category):
     datastore_entities = datastore.Client().query(kind=category).fetch()
     return pd.DataFrame(datastore_entities)
+
