@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_bootstrap_templates as dbt
 from dash import Dash, html, dcc, Output, callback, Input
 
-from dashboard.pages import explore_cats, analyze_string, analyze_files, explore_products, explore_data
+from dashboard.pages import explore_cats, analyze_string, analyze_files, explore_products, upload_review
 
 dbt.load_figure_template(["bootstrap"])
 template_theme = "cyborg"
@@ -34,6 +34,6 @@ def display_page(pathname):
     elif pathname == '/products':
         return explore_products.layout
     elif pathname == '/uploadreview':
-        return explore_cats.layout
+        return upload_review.layout
     else:
         return explore_cats.layout

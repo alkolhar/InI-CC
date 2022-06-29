@@ -1,7 +1,6 @@
 import datetime
 
 import dash_bootstrap_templates as dbt
-import pandas as pd
 from dash import callback, Output, Input, State, dash_table
 
 from dashboard.functions import storage
