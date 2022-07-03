@@ -12,13 +12,15 @@ dbc_css = (
     "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 )
 
-app = Dash(__name__, external_stylesheets=[url_theme, dbc_css], suppress_callback_exceptions=True,
-           meta_tags=[{"name": "viewport",
-                       "content": "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"}])
+dash_app = Dash(__name__, external_stylesheets=[url_theme, dbc_css], suppress_callback_exceptions=True,
+                meta_tags=[{"name": "viewport",
+                            "content": "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"}])
+server = dash_app.server
 
-app.title = "Cloud computing: Review analysis"
+dash_app.title = "Cloud computing: Review analysis"
+dash_app._favicon = "favicon.ico"
 
-app.layout = html.Div(
+dash_app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
 
