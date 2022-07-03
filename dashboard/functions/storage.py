@@ -34,6 +34,8 @@ def func(n_clicks, category):
 def func(n_clicks, category):
     if n_clicks is not None and category != '':
         df = get_datastore_entities(category)
+        # Remove timezone from columns
+        df['date'] = df['date'].dt.tz_localize(None)
         return dcc.send_data_frame(df.to_excel, "sentiment-analysis.xlsx", sheet_name=category)
 
 

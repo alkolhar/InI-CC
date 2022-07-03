@@ -1,11 +1,14 @@
 """ Page layout for the explore data page. """
+import datetime as dt
+import uuid
+
 import dash_bootstrap_templates as dbt
-from dash import dash_table, State
+import pandas as pd
 from dash import callback, Output, Input
 
-from dashboard.functions import storage
+from dashboard.functions.analyze import analyze_file, upload_to_datastore
 from dashboard.functions.elements import *
-from dashboard.functions.storage import get_categories, get_datastore_entities
+from dashboard.functions.storage import get_categories
 
 dbt.load_figure_template(["bootstrap"])
 
@@ -43,17 +46,18 @@ title_input = dbc.Row(
         dbc.Label("Title", html_for="title", style={"font-size": "1.5em"}),
         dbc.Input(id="title", type="text", placeholder="Enter a title"),
         dbc.FormText("Enter a title for the review example.", color="muted"),
-        dbc.FormFeedback("This title seems a little bit odd.", type="invalid"),
+        dbc.FormFeedback("This title seems a little bit short.", type="invalid"),
         dbc.FormFeedback("This looks like a good title.", type="valid"),
     ], className="mb-3", style={"marginTop": "10px"}
 )
 
 product_id_input = dbc.Row(
     [
-        dbc.Label("Product ID", html_for="product_id", style={"font-size": "1.5em"}),
-        dbc.Input(id="product_id", type="text", placeholder="Enter a product ID"),
-        dbc.FormText("Enter a product ID for the review example.", color="muted"),
-        dbc.FormFeedback("Product ID is required.", type="invalid"),
+        dbc.Label("Product Name", html_for="product_id", style={"font-size": "1.5em"}),
+        dbc.Input(id="product_id", type="text", placeholder="Enter a product name"),
+        dbc.FormText("Enter a product name for the review example.", color="muted"),
+        dbc.FormFeedback("Product name is required.", type="invalid"),
+        dbc.FormFeedback("Product name looks good.", type="valid"),
     ], className="form-group", style={"marginTop": "10px"}
 )
 
@@ -63,6 +67,7 @@ product_review_input = dbc.Row(
         dbc.Textarea(id="product_review", placeholder="Enter a product review"),
         dbc.FormText("Enter a product review for the review example.", color="muted"),
         dbc.FormFeedback("Product review is required.", type="invalid"),
+        dbc.FormFeedback("That looks ok.", type="valid"),
     ], className="form-group", style={"marginTop": "10px"}
 )
 
@@ -97,10 +102,10 @@ layout = html.Div([navbar, header, body])
 @callback(
     [Output("submit-button", "disabled"), Output("submit-button", "className")],
     [Input("category-selector", "value"), Input("title", "value"),
-     Input("product_id", "value"), Input("product_review", "value")],
+     Input("product_id", "value")],
     prevent_initial_call=True,
 )
-def disable_submit_button(category, title, product_id, product_review):
+def disable_submit_button(category, title, product_id):
     if category == "" or category is None or title == "" or title is None or product_id == "" or product_id is None:
         return True, "btn btn-primary disabled"
     else:
@@ -126,18 +131,38 @@ def disable_reset_button(category, title, product_id, product_review):
     prevent_initial_call=True,
 )
 def validate_title(title):
-    min_length = 3
-    if check_for_string_length(title, min_length):
-        return True, ''
+    if check_for_string_length(title, 3):
+        return True, False
     else:
-        return False, 'Title is required111.'
+        return False, True
+
+
+@callback(
+    Output('product_id', 'valid'), Output('product_id', 'invalid'),
+    [Input('product_id', 'value')],
+    prevent_initial_call=True,
+)
+def validate_product_id(product_id):
+    if check_for_string_length(product_id, 3):
+        return True, False
+    else:
+        return False, True
+
+
+@callback(
+    Output('product_review', 'valid'), Output('product_review', 'invalid'),
+    [Input('product_review', 'value')],
+    prevent_initial_call=True,
+)
+def validate_product_review(product_review):
+    if check_for_string_length(product_review, 10):
+        return True, False
+    else:
+        return False, True
 
 
 def check_for_string_length(string, min_length):
-    if len(string) < min_length:
-        return False
-    else:
-        return True
+    return not len(string) < min_length
 
 
 @callback(
@@ -149,3 +174,29 @@ def check_for_string_length(string, min_length):
 def reset_form(n_clicks):
     if n_clicks > 0:
         return "", "", "", "", "", 3
+
+
+# Callback for submit button
+@callback(
+    Output("output-area", "children"),
+    [Input("submit-button", "n_clicks"), Input("category-selector", "value"),
+     Input("title", "value"), Input("product_id", "value"), Input("product_review", "value"),
+     Input("product_rating", "value")],
+    prevent_initial_call=True,
+)
+def submit_form(n_clicks, category, title, product_id, product_review, product_rating):
+    if n_clicks is not None and n_clicks > 0:
+
+        d = {'unique_id': [str(uuid.uuid4())], 'asin': [str(uuid.uuid4())[:8]], 'product_name': [product_id],
+             'rating': [product_rating], 'title': [title], 'date': [dt.datetime.now()],
+             'reviewer': ['test_user'], 'review_text': [product_review]}
+        df = pd.DataFrame(data=d)
+
+        # Analyze file
+        analyze_file(df)
+        # Upload to datastore
+        upload_to_datastore(df, category)
+
+        return html.Div([
+            dbc.Row(html.H4("Review submitted!"), justify='center'),
+        ])

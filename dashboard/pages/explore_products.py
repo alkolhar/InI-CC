@@ -1,6 +1,9 @@
+import logging
+
 import dash_bootstrap_templates as dbt
 import pandas as pd
 from dash import callback, Output, Input, State
+from dash.exceptions import PreventUpdate
 
 from dashboard.functions.elements import *
 from dashboard.functions.storage import get_categories, get_datastore_entities
@@ -51,12 +54,23 @@ jumbotron = html.Div(
 # Update dropdown values depending on the selected product category
 @callback(
     Output("select-product", "options"),
-    [Input("select-product", "search_value"), Input("select-category", "value")],
+    [Input("select-category", "value")],
 )
-def set_dropdown_content(search_value, cat_dd):
+def set_dropdown_content(cat_dd):
     if cat_dd is not None:
         dff = get_datastore_entities(cat_dd)
         return [{"label": i, "value": i} for i in dff['product_id'].unique()]
+
+
+@callback(
+    Output("select-category", "options"),
+    Input("select-category", "search_value"),
+    State("select-category", "options"),
+)
+def update_options(search_value, options):
+    if not search_value:
+        raise PreventUpdate
+    return [o for o in options if search_value in o['label']]
 
 
 # Update site layout depending on the selected product
@@ -67,7 +81,6 @@ def set_dropdown_content(search_value, cat_dd):
     prevent_initial_call=True
 )
 def update_output(prod_id, cat_dd):
-    print('prod_id: ' + prod_id)
     dff = get_datastore_entities(cat_dd)
 
     if isinstance(prod_id, str) and prod_id != '':
@@ -81,7 +94,6 @@ def update_output(prod_id, cat_dd):
     prevent_initial_call=True)
 def update_text(jsonified_cleaned_data):
     if jsonified_cleaned_data is not None:
-        print('callback called')
         dff = pd.read_json(jsonified_cleaned_data)
         # return product id and count of all reviews for this product
         prd_name = str(dff.iloc[0]['product_name'])
@@ -95,7 +107,7 @@ def update_text(jsonified_cleaned_data):
 
         return prd_name, prd_id, prd_sum
     else:
-        print('no data')
+        logging.info('no data')
 
 
 @callback(
@@ -109,7 +121,7 @@ def update_hist1_l(jsonified_cleaned_data):
         fig = px.histogram(dff, x='rating', template=def_template, color='rating', nbins=10)
         return fig
     else:
-        print('no data')
+        logging.info('no data')
 
 
 @callback(
@@ -123,7 +135,7 @@ def update_hist1_r(jsonified_cleaned_data):
         fig = px.histogram(dff, x='sentiment_score', template=def_template, color='rating', nbins=4)
         return fig
     else:
-        print('no data')
+        logging.info('no data')
 
 
 @callback(
@@ -138,7 +150,7 @@ def update_prod_scatter(jsonified_cleaned_data):
                          hover_name='product_name', template=def_template)
         return fig
     else:
-        print('no data')
+        logging.info('no data')
 
 
 @callback(
@@ -152,7 +164,7 @@ def update_prod_box(jsonified_cleaned_data):
         fig = px.box(dff, x='review_length', y='rating', color='rating', orientation='h', template=def_template)
         return fig
     else:
-        print('no data')
+        logging.info('no data')
 
 
 @callback(
@@ -165,7 +177,7 @@ def update_prod_box(jsonified_cleaned_data):
         # update wordcloud in body with new data
         return create_wordcloud(dff)
     else:
-        print('no data')
+        logging.info('no data')
 
 
 header = html.Div([

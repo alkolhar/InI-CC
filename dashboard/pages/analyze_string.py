@@ -53,6 +53,7 @@ output = dbc.Card(
                                         dbc.CardBody(
                                             daq.Gauge(
                                                 id="mag",
+                                                showCurrentValue=True,
                                                 value=2,
                                                 min=0,
                                             ), class_name='align-self-center'
@@ -69,6 +70,7 @@ output = dbc.Card(
                                         dbc.CardBody(
                                             daq.Gauge(
                                                 id="score",
+                                                showCurrentValue=True,
                                                 color={"gradient": True,
                                                        "ranges": {"red": [-1, -0.7],
                                                                   "yellow": [-0.7, 0.7],

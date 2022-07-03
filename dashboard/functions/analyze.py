@@ -1,6 +1,7 @@
 import base64
 import io
 import locale
+import logging
 import random
 import xml.etree.ElementTree as et
 
@@ -28,7 +29,7 @@ def upload_review_file(contents, filename, date):
         word_count = sum(len(child.find('review_text').text.split()) for child in root)
         rand = random.randint(0, review_count - 1)
     except Exception as e:
-        print(e)
+        logging.warning(e)
         return (html.Div([
             'There was an error processing this file.'
         ]), '--', '--')
@@ -66,7 +67,7 @@ def upload_review_file(contents, filename, date):
                 locale.format_string("%d", review_count, grouping=True),
                 locale.format_string("%d", word_count, grouping=True))
     else:
-        print('no dataframe')
+        logging.info('No root')
 
 
 def analyze_string(text_content):
@@ -99,7 +100,7 @@ def analyze_file(df: pd.DataFrame):
             df.at[index, 'sentiment_score'] = result[0]
             df.at[index, 'sentiment_magnitude'] = result[1]
     else:
-        print('No data to analyze')
+        logging.info('No dataframe')
 
 
 def upload_to_datastore(df: pd.DataFrame, category: str):
