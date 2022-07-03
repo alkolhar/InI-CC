@@ -13,11 +13,6 @@ from google.cloud import language_v1
 locale.setlocale(locale.LC_ALL, 'de_CH')
 
 
-# Look like a good tutorial
-# https://opensource.com/article/19/7/python-google-natural-language-api
-# https://www.youtube.com/watch?v=Y2wgQjxrPD8
-
-
 def upload_review_file(contents, filename, date):
     try:
         content_type, content_string = contents.split(',')
@@ -51,17 +46,6 @@ def upload_review_file(contents, filename, date):
         }
 
         df = pd.concat([df, pd.DataFrame(d, index=[0])])
-
-        # df = df.append({
-        #     'unique_id': child.find('unique_id').text,
-        #     'asin': child.find('asin').text,
-        #     'product_name': child.find('product_name').text,
-        #     'rating': child.find('rating').text,
-        #     'title': child.find('title').text,
-        #     'date': child.find('date').text,
-        #     'reviewer': child.find('reviewer').text,
-        #     'review_text': child.find('review_text').text,
-        # }, ignore_index=True)
 
     # Analyze file
     analyze_file(df)
