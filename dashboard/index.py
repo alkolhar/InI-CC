@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_bootstrap_templates as dbt
 from dash import Dash, html, dcc, Output, callback, Input
 
-from dashboard.pages import explore_cats, analyze_string, analyze_files, explore_products, upload_review
+from dashboard.pages import explore_cats, analyze_string, analyze_files, explore_products, upload_review, about
 
 dbt.load_figure_template(["bootstrap"])
 template_theme = "cyborg"
@@ -12,7 +12,9 @@ dbc_css = (
     "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 )
 
-app = Dash(__name__, external_stylesheets=[url_theme, dbc_css], suppress_callback_exceptions=True)
+app = Dash(__name__, external_stylesheets=[url_theme, dbc_css], suppress_callback_exceptions=True,
+           meta_tags=[{"name": "viewport",
+                       "content": "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"}])
 
 app.title = "Cloud computing: Review analysis"
 
@@ -35,5 +37,9 @@ def display_page(pathname):
         return explore_products.layout
     elif pathname == '/uploadreview':
         return upload_review.layout
-    else:
+    elif pathname == '/about':
+        return about.layout
+    elif pathname == '/':
         return explore_cats.layout
+    else:
+        return 404

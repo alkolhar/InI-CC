@@ -13,7 +13,8 @@ navbar = dbc.NavbarSimple(
         dbc.NavItem(dbc.NavLink("Look for product reviews", href="/products"), style={"marginLeft": "5px"}),
         dbc.NavItem(dbc.NavLink("Upload your files", href="/uploadfile"), style={"marginLeft": "5px"}),
         dbc.NavItem(dbc.NavLink("Upload your own reviews", href="/uploadreview"), style={"marginLeft": "5px"}),
-        dbc.NavItem(dbc.NavLink("Analyze your text", href="/analyzetext"), style={"marginLeft": "5px"})
+        dbc.NavItem(dbc.NavLink("Analyze your text", href="/analyzetext"), style={"marginLeft": "5px"}),
+        dbc.NavItem(dbc.NavLink("About", href="/about"), style={"marginLeft": "5px"}),
     ],
     brand="Review Sentiment Analysis",
     brand_href="/",

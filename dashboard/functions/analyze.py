@@ -39,7 +39,7 @@ def upload_review_file(contents, filename, date):
                                'title', 'date', 'reviewer', 'review_text'])
 
     for child in root:
-        df = df.append({
+        d = {
             'unique_id': child.find('unique_id').text,
             'asin': child.find('asin').text,
             'product_name': child.find('product_name').text,
@@ -47,8 +47,21 @@ def upload_review_file(contents, filename, date):
             'title': child.find('title').text,
             'date': child.find('date').text,
             'reviewer': child.find('reviewer').text,
-            'review_text': child.find('review_text').text,
-        }, ignore_index=True)
+            'review_text': child.find('review_text').text
+        }
+
+        df = pd.concat([df, pd.DataFrame(d, index=[0])])
+
+        # df = df.append({
+        #     'unique_id': child.find('unique_id').text,
+        #     'asin': child.find('asin').text,
+        #     'product_name': child.find('product_name').text,
+        #     'rating': child.find('rating').text,
+        #     'title': child.find('title').text,
+        #     'date': child.find('date').text,
+        #     'reviewer': child.find('reviewer').text,
+        #     'review_text': child.find('review_text').text,
+        # }, ignore_index=True)
 
     # Analyze file
     analyze_file(df)
